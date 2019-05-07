@@ -14,32 +14,39 @@ data Instruction = IncDP
                  | JmpBack
     deriving Show
 
-step :: VM -> VM
+step :: VM -> IO VM
 step (Exec instrState@(State _ (Just instr) _) dataState) =
-    Exec (instrHandler instrState instr) (dataHandler dataState instr)
+    do
+        newData <- dataHandler dataState instr
+        return (Exec (instrHandler instrState instr) newData)
 
 step (Exec (State _ Nothing _) dataState) =
-    End dataState
-step (End state) =
-    End state
+    return (End dataState)
+step vm@(End state) =
+    return vm
 
 instrHandler :: State (Maybe Instruction) -> Instruction -> State (Maybe Instruction)
 instrHandler instrState IncDP = shiftR Nothing instrState
 instrHandler instrState DecDP = shiftR Nothing instrState
 instrHandler instrState IncB = shiftR Nothing instrState
 instrHandler instrState DecB = shiftR Nothing instrState
-instrHandler instrState Input = error "Input"
-instrHandler instrState Output = error "Output"
+instrHandler instrState Input = shiftR Nothing instrState
+instrHandler instrState Output = shiftR Nothing instrState
 instrHandler instrState JmpFwd = shiftR Nothing (jumpForward instrState)
 instrHandler instrState JmpBack = shiftR Nothing (jumpBackward instrState)
  
 
-dataHandler :: State Integer -> Instruction -> State Integer
-dataHandler dataState IncDP = shiftR 0 dataState
-dataHandler dataState DecDP = shiftL 0 dataState
-dataHandler dataState IncB = stateApply (\x -> x + 1) dataState
-dataHandler dataState DecB = stateApply (\x -> x - 1) dataState
-dataHandler dataState _ = dataState
+dataHandler :: State Integer -> Instruction -> IO (State Integer)
+dataHandler dataState IncDP = return (shiftR 0 dataState)
+dataHandler dataState DecDP = return (shiftL 0 dataState)
+dataHandler dataState IncB = return (stateApply (\x -> x + 1) dataState)
+dataHandler dataState DecB = return (stateApply (\x -> x - 1) dataState)
+dataHandler dataState@(State _ curr _) Input =
+    do
+        putStrLn (show curr)
+        return dataState
+dataHandler dataState Output = error "Output"
+dataHandler dataState _ = return dataState
 
       
 shiftR :: a -> State a -> State a
