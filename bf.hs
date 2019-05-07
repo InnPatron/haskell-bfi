@@ -18,7 +18,7 @@ step :: VM -> IO VM
 step (Exec instrState@(State _ (Just instr) _) dataState) =
     do
         newData <- dataHandler dataState instr
-        return (Exec (instrHandler instrState instr) newData)
+        step (Exec (instrHandler instrState instr) newData)
 
 step (Exec (State _ Nothing _) dataState) =
     return (End dataState)
