@@ -42,11 +42,18 @@ dataHandler dataState IncDP = return (shiftR 0 dataState)
 dataHandler dataState DecDP = return (shiftL 0 dataState)
 dataHandler dataState IncB = return (stateApply (\x -> x + 1) dataState)
 dataHandler dataState DecB = return (stateApply (\x -> x - 1) dataState)
-dataHandler dataState@(State _ curr _) Input =
+dataHandler dataState@(State left _ right) Input =
+    do
+        putStrLn "Input integer into cell:"
+        input <- getLine
+        let newCell = (read input :: Integer)
+        return (State left newCell right)
+
+dataHandler dataState@(State _ curr _) Output = 
     do
         putStrLn (show curr)
         return dataState
-dataHandler dataState Output = error "Output"
+
 dataHandler dataState _ = return dataState
 
       
