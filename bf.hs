@@ -1,3 +1,5 @@
+import System.IO
+
 data VM = Exec (State (Maybe Instruction)) (State Integer)
         | End (State Integer)
         deriving Show
@@ -45,6 +47,7 @@ dataHandler dataState DecB = return (stateApply (\x -> x - 1) dataState)
 dataHandler dataState@(State left _ right) Input =
     do
         putStrLn "Input integer into cell:"
+        hFlush stdout
         input <- getLine
         let newCell = (read input :: Integer)
         return (State left newCell right)
@@ -52,6 +55,7 @@ dataHandler dataState@(State left _ right) Input =
 dataHandler dataState@(State _ curr _) Output = 
     do
         putStrLn ("Printing cell: " ++ (show curr))
+        hFlush stdout
         return dataState
 
 dataHandler dataState _ = return dataState
