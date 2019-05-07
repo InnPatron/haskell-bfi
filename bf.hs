@@ -108,5 +108,6 @@ translate ']' = JmpBack
 -- bfExecute :: (State Instruction, State Integer) -> (State Instruction, State Integer)  
 -- bfExecute (instrs, data) 
 
-state = initVM "><+-.,[]" 50
-main = putStrLn (show state)
+vm = initVM "+++.>+.>." 50
+main = do
+    step vm
