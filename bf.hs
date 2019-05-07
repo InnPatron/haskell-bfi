@@ -24,34 +24,35 @@ step (End state) =
     End state
 
 instrHandler :: State (Maybe Instruction) -> Instruction -> State (Maybe Instruction)
-instrHandler instrState IncDP = shiftR instrState
-instrHandler instrState DecDP = shiftR instrState
-instrHandler instrState IncB = shiftR instrState
-instrHandler instrState DecB = shiftR instrState
+instrHandler instrState IncDP = shiftR Nothing instrState
+instrHandler instrState DecDP = shiftR Nothing instrState
+instrHandler instrState IncB = shiftR Nothing instrState
+instrHandler instrState DecB = shiftR Nothing instrState
 instrHandler instrState Input = error "Input"
 instrHandler instrState Output = error "Output"
-instrHandler instrState JmpFwd = shiftR (jumpForward instrState)
-instrHandler instrState JmpBack = shiftR (jumpBackward instrState)
+instrHandler instrState JmpFwd = shiftR Nothing (jumpForward instrState)
+instrHandler instrState JmpBack = shiftR Nothing (jumpBackward instrState)
  
 
 dataHandler :: State Integer -> Instruction -> State Integer
-dataHandler dataState IncDP = shiftR dataState
-dataHandler dataState DecDP = shiftL dataState
+dataHandler dataState IncDP = shiftR 0 dataState
+dataHandler dataState DecDP = shiftL 0 dataState
 dataHandler dataState IncB = stateApply (\x -> x + 1) dataState
 dataHandler dataState DecB = stateApply (\x -> x - 1) dataState
 dataHandler dataState _ = dataState
 
       
-shiftR :: State a -> State a
-shiftR (State left current (rightFirst:rightRest)) =
+shiftR :: a -> State a -> State a
+shiftR _ (State left current (rightFirst:rightRest)) =
     State (current : left) rightFirst rightRest 
-shiftR (State left current []) =
-    error "Shifted right beyond the tape"
+shiftR defaultValue (State left current []) =
+    State (current : left) defaultValue (replicate 49 defaultValue)
 
-shiftL (State (leftFirst: leftRest) current right ) =
+shiftL :: a -> State a -> State a
+shiftL _ (State (leftFirst: leftRest) current right ) =
     State leftRest leftFirst (current : right)
-shiftL (State [] current right) =
-    error "Shifted left beyond the tape"
+shiftL defaultValue (State [] current right) =
+    State (replicate 49 defaultValue) defaultValue (current : right)
 
 stateApply :: (a -> a) -> (State a) -> (State a)
 stateApply f (State left current right) = 
@@ -62,7 +63,7 @@ current (State _ current _) = current
 
 jumpForward :: (State (Maybe Instruction)) -> (State (Maybe Instruction))
 jumpForward state =
-    let nextState = shiftR state
+    let nextState = shiftR Nothing state
 
      in case (current nextState) of 
           (Just JmpBack)   -> nextState
@@ -70,7 +71,7 @@ jumpForward state =
 
 jumpBackward :: (State (Maybe Instruction)) -> (State (Maybe Instruction))
 jumpBackward state =
-    let nextState = shiftL state
+    let nextState = shiftL Nothing state
 
      in case (current nextState) of
           (Just JmpFwd)    -> nextState
