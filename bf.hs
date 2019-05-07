@@ -51,7 +51,7 @@ dataHandler dataState@(State left _ right) Input =
 
 dataHandler dataState@(State _ curr _) Output = 
     do
-        putStrLn (show curr)
+        putStrLn ("Printing cell: " ++ (show curr))
         return dataState
 
 dataHandler dataState _ = return dataState
@@ -115,6 +115,6 @@ translate ']' = JmpBack
 -- bfExecute :: (State Instruction, State Integer) -> (State Instruction, State Integer)  
 -- bfExecute (instrs, data) 
 
-vm = initVM "+++.>+.>." 50
+vm = initVM "+++.>+.>.,." 50
 main = do
     step vm
