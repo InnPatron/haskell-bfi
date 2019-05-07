@@ -14,6 +14,34 @@ data Instruction = IncDP
                  | JmpBack
     deriving Show
 
+step :: VM -> VM
+step (Exec instrState@(State _ (Just instr) _) dataState) =
+    Exec (instrHandler instrState instr) (dataHandler dataState instr)
+
+step (Exec (State _ Nothing _) dataState) =
+    End dataState
+step (End state) =
+    End state
+
+instrHandler :: State (Maybe Instruction) -> Instruction -> State (Maybe Instruction)
+instrHandler instrState IncDP = shiftR instrState
+instrHandler instrState DecDP = shiftR instrState
+instrHandler instrState IncB = shiftR instrState
+instrHandler instrState DecB = shiftR instrState
+instrHandler instrState Input = error "Input"
+instrHandler instrState Output = error "Output"
+instrHandler instrState JmpFwd = shiftR (jumpForward instrState)
+instrHandler instrState JmpBack = shiftR (jumpBackward instrState)
+ 
+
+dataHandler :: State Integer -> Instruction -> State Integer
+dataHandler dataState IncDP = shiftR dataState
+dataHandler dataState DecDP = shiftL dataState
+dataHandler dataState IncB = stateApply (\x -> x + 1) dataState
+dataHandler dataState DecB = stateApply (\x -> x - 1) dataState
+dataHandler dataState _ = dataState
+
+      
 shiftR :: State a -> State a
 shiftR (State left current (rightFirst:rightRest)) =
     State (current : left) rightFirst rightRest 
@@ -32,21 +60,21 @@ stateApply f (State left current right) =
 current :: State a -> a
 current (State _ current _) = current
 
-jumpForward :: State Instruction -> State Instruction
+jumpForward :: (State (Maybe Instruction)) -> (State (Maybe Instruction))
 jumpForward state =
     let nextState = shiftR state
 
      in case (current nextState) of 
-          JmpBack   -> nextState
+          (Just JmpBack)   -> nextState
           otherwise -> jumpForward nextState
 
-jumpBackward :: State Instruction -> State Instruction
+jumpBackward :: (State (Maybe Instruction)) -> (State (Maybe Instruction))
 jumpBackward state =
     let nextState = shiftL state
 
      in case (current nextState) of
-          JmpFwd    -> nextState
-          otherwise -> jumpBackward nextState
+          (Just JmpFwd)    -> nextState
+          otherwise        -> jumpBackward nextState
 
 
 initState :: String -> Int -> (State Instruction, State Integer)
