@@ -116,5 +116,4 @@ translate ']' = JmpBack
 -- bfExecute (instrs, data) 
 
 vm = initVM "+++.>+.>.,." 50
-main = do
-    step vm
+main = step vm
