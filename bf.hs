@@ -120,4 +120,6 @@ translate ']' = JmpBack
 -- bfExecute (instrs, data) 
 
 vm = initVM "+++.>+.>.,." 50
-main = step vm
+main = do
+    step vm
+    putStrLn "HALT"
