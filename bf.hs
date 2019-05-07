@@ -1,5 +1,6 @@
 data VM = Exec (State (Maybe Instruction)) (State Integer)
         | End (State Integer)
+        deriving Show
 
 data State t = State [t] t [t]
     deriving Show
@@ -85,14 +86,14 @@ jumpBackward state =
           otherwise        -> jumpBackward nextState
 
 
-initState :: String -> Int -> (State (Maybe Instruction), State Integer)
-initState string size = 
+initVM :: String -> Int -> VM
+initVM string size = 
     let instructionState instrs = case instrs of
                                []           -> State [] (Just Output) []
                                (first:rest) -> State [] first rest
         dataState(size) = State [] 0 (replicate size 0)
 
-      in (instructionState (map (\char -> Just (translate char)) string), dataState size)
+      in Exec (instructionState (map (\char -> Just (translate char)) string)) (dataState size)
 
 translate :: Char -> Instruction
 translate '>' = IncDP
@@ -107,5 +108,5 @@ translate ']' = JmpBack
 -- bfExecute :: (State Instruction, State Integer) -> (State Instruction, State Integer)  
 -- bfExecute (instrs, data) 
 
-state = initState "><+-.,[]" 50
+state = initVM "><+-.,[]" 50
 main = putStrLn (show state)
