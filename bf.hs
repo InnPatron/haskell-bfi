@@ -85,13 +85,14 @@ jumpBackward state =
           otherwise        -> jumpBackward nextState
 
 
-initState :: String -> Int -> (State Instruction, State Integer)
+initState :: String -> Int -> (State (Maybe Instruction), State Integer)
 initState string size = 
-    let instructionState(instrs) = case instrs of
-                               []           -> State [] Output []
+    let instructionState instrs = case instrs of
+                               []           -> State [] (Just Output) []
                                (first:rest) -> State [] first rest
         dataState(size) = State [] 0 (replicate size 0)
-      in (instructionState (map translate string), dataState size)
+
+      in (instructionState (map (\char -> Just (translate char)) string), dataState size)
 
 translate :: Char -> Instruction
 translate '>' = IncDP
