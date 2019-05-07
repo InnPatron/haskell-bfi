@@ -55,7 +55,6 @@ dataHandler dataState@(State left _ right) Input =
 dataHandler dataState@(State _ curr _) Output = 
     do
         putStrLn ("Printing cell: " ++ (show curr))
-        hFlush stdout
         return dataState
 
 dataHandler dataState _ = return dataState
