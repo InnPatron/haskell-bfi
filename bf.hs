@@ -2,10 +2,8 @@ import System.IO
 
 data VM = Exec (State (Maybe Instruction)) (State Integer)
         | End (State Integer)
-        deriving Show
 
 data State t = State [t] t [t]
-    deriving Show
 
 data Instruction = IncDP
                  | DecDP
@@ -15,7 +13,6 @@ data Instruction = IncDP
                  | Input
                  | JmpFwd
                  | JmpBack
-    deriving Show
 
 step :: VM -> IO VM
 step (Exec instrState@(State _ (Just instr) _) dataState) =
